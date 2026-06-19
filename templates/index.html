@@ -110,22 +110,30 @@
                         <button id="clear-search" class="clear-btn" aria-label="Clear search" style="display: none;">&times;</button>
                     </div>
                     
-                    <div class="category-filters" id="category-filters-container">
-                        <button class="filter-tab active" data-category="all">All</button>
-                        <button class="filter-tab" data-category="feature">
-                            <span class="filter-dot feature-dot"></span>Features
-                        </button>
-                        <button class="filter-tab" data-category="announcement">
-                            <span class="filter-dot announcement-dot"></span>Announcements
-                        </button>
-                        <button class="filter-tab" data-category="change">
-                            <span class="filter-dot change-dot"></span>Changes
-                        </button>
-                        <button class="filter-tab" data-category="issue">
-                            <span class="filter-dot issue-dot"></span>Issues
-                        </button>
-                        <button class="filter-tab" data-category="deprecation">
-                            <span class="filter-dot deprecation-dot"></span>Deprecations
+                    <div class="filter-row">
+                        <div class="category-filters" id="category-filters-container">
+                            <button class="filter-tab active" data-category="all">All</button>
+                            <button class="filter-tab" data-category="feature">
+                                <span class="filter-dot feature-dot"></span>Features
+                            </button>
+                            <button class="filter-tab" data-category="announcement">
+                                <span class="filter-dot announcement-dot"></span>Announcements
+                            </button>
+                            <button class="filter-tab" data-category="change">
+                                <span class="filter-dot change-dot"></span>Changes
+                            </button>
+                            <button class="filter-tab" data-category="issue">
+                                <span class="filter-dot issue-dot"></span>Issues
+                            </button>
+                            <button class="filter-tab" data-category="deprecation">
+                                <span class="filter-dot deprecation-dot"></span>Deprecations
+                            </button>
+                        </div>
+                        <button id="export-csv-btn" class="btn btn-secondary btn-icon-text" title="Export currently filtered notes to CSV" aria-label="Export to CSV">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                            <span>Export CSV</span>
                         </button>
                     </div>
                 </div>

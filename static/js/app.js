@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryFiltersContainer = document.getElementById('category-filters-container');
     const feedContainer = document.getElementById('feed-container');
     const noResultsState = document.getElementById('no-results');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
 
     // Composer elements
     const composerEmptyState = document.getElementById('composer-empty-state');
@@ -308,6 +309,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${prefix}${body} ${link}${suffix}`;
     }
 
+    // Copy a single update content to clipboard
+    function copyUpdateToClipboard(update) {
+        const formattedText = `BigQuery ${update.category} (${update.date})
+Source: ${update.link}
+
+${update.contentText.trim()}`;
+
+        navigator.clipboard.writeText(formattedText)
+            .then(() => {
+                showToast('Content copied to clipboard!');
+            })
+            .catch(err => {
+                console.error('Could not copy text: ', err);
+                showToast('Failed to copy text.', true);
+            });
+    }
+
     // Helper to get category emojis for tweets
     function getCategoryEmoji(category) {
         const cat = category.toLowerCase();
@@ -415,11 +433,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="badge badge-${catClass}">${up.category}</span>
                             <time class="card-date">${up.date}</time>
                         </div>
-                        <button class="card-quick-tweet-btn" title="Quick tweet this" aria-label="Compose tweet for this update">
-                            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                            </svg>
-                        </button>
+                        <div class="card-action-buttons">
+                            <button class="card-copy-btn" title="Copy to clipboard" aria-label="Copy update to clipboard">
+                                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
+                            <button class="card-quick-tweet-btn" title="Quick tweet this" aria-label="Compose tweet for this update">
+                                <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                </svg>
+                            </button>
+                        </div>
                     </header>
                     <div class="card-body">
                         ${up.contentHtml}
@@ -438,9 +464,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Card click selects it
             card.addEventListener('click', (e) => {
+                // If clicked on copy button, copy content and stop propagation
+                const copyBtn = card.querySelector('.card-copy-btn');
+                if (copyBtn && (copyBtn.contains(e.target) || copyBtn === e.target)) {
+                    e.stopPropagation();
+                    copyUpdateToClipboard(updateObj);
+                    return;
+                }
+
                 // If clicked on quick-tweet button, we select and focus composer
                 const quickBtn = card.querySelector('.card-quick-tweet-btn');
-                if (quickBtn.contains(e.target) || quickBtn === e.target) {
+                if (quickBtn && (quickBtn.contains(e.target) || quickBtn === e.target)) {
                     e.stopPropagation();
                     selectUpdate(updateObj);
                     tweetTextarea.focus();
@@ -448,12 +482,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Smooth scroll to composer on mobile
                     if (window.innerWidth <= 768) {
                         document.getElementById('composer-sidebar').scrollIntoView({ behavior: 'smooth' });
-                    }
-                    return;
-                }
+                      }
+                      return;
+                  }
 
-                selectUpdate(updateObj);
-            });
+                  selectUpdate(updateObj);
+              });
 
             // Keyboard navigation (Enter key selects)
             card.addEventListener('keydown', (e) => {
@@ -583,6 +617,50 @@ document.addEventListener('DOMContentLoaded', () => {
         // Open sharing window
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(twitterUrl, '_blank', 'width=600,height=400,resizable=yes');
+    });
+
+    // Export visible updates to CSV
+    exportCsvBtn.addEventListener('click', () => {
+        if (filteredUpdates.length === 0) {
+            showToast('No updates to export.', true);
+            return;
+        }
+
+        // CSV columns: Date, Category, Content, URL
+        const headers = ['Date', 'Category', 'Content', 'Source URL'];
+        
+        const rows = filteredUpdates.map(up => {
+            return [
+                up.date,
+                up.category,
+                up.contentText.replace(/\s+/g, ' ').trim(),
+                up.link
+            ];
+        });
+
+        // Convert rows to CSV format
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => 
+                row.map(val => `"${val.replace(/"/g, '""')}"`).join(',')
+            )
+        ].join('\n');
+
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // Dynamic file name
+        const timestamp = new Date().toISOString().split('T')[0];
+        link.setAttribute('href', url);
+        link.setAttribute('download', `bigquery_release_notes_${timestamp}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Exported ${filteredUpdates.length} notes to CSV!`);
     });
 
     // Initialize application on load
