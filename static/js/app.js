@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements
     const refreshBtn = document.getElementById('refresh-btn');
     const refreshIcon = refreshBtn.querySelector('.spinner-icon');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
     const syncStatus = document.getElementById('sync-status');
     
     // Stats elements
@@ -661,6 +662,19 @@ ${update.contentText.trim()}`;
         document.body.removeChild(link);
         
         showToast(`Exported ${filteredUpdates.length} notes to CSV!`);
+    });
+
+    // Theme toggling and initialization
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-theme');
+        const isLight = document.body.classList.contains('light-theme');
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        showToast(`Switched to ${isLight ? 'Light' : 'Dark'} Mode`);
     });
 
     // Initialize application on load
